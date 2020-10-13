@@ -14,6 +14,7 @@ export default class NuxtServer {
 
     // Build only in dev mode
     if (dev && shouldBuild) {
+      console.log('Building nuxt...');
       nuxt = await loadNuxt('dev');
       const builder = new Builder(nuxt, BundleBuilder);
       const res = await builder.build();
@@ -22,6 +23,8 @@ export default class NuxtServer {
 
       return res.nuxt;
     } else {
+      console.log(dev, shouldBuild);
+
       nuxt = await loadNuxt('start');
     }
 
