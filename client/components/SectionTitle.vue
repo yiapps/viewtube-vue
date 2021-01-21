@@ -1,10 +1,11 @@
 <template>
-  <div class="section-title">
+  <div class="section-title" @mouseenter="onSectionMouseEnter">
     <h2 :is="link ? 'nuxt-link' : 'h2'" class="title" :to="link">
       {{ title }}
       <ChevronRightIcon v-if="link !== undefined" />
     </h2>
-    <span v-if="line" class="line" />
+    <span v-if="line" class="line" :class="{ 'heartbeat-animating': heartbeatAnimating }" />
+    <img class="heartbeat-animation" src="@/assets/heartbeat.svg" alt="Heartbeat-svg" />
     <slot />
   </div>
 </template>
@@ -13,6 +14,7 @@
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue';
 import GradientBackground from '@/components/GradientBackground.vue';
 import Vue from 'vue';
+import anime from 'animejs';
 
 export default Vue.extend({
   name: 'SectionTitle',
@@ -30,6 +32,39 @@ export default Vue.extend({
         return true;
       }
     }
+  },
+  data() {
+    return {
+      heartbeatAnimating: false,
+      heartbeatTimeout: null
+    };
+  },
+  mounted() {},
+  methods: {
+    onSectionMouseEnter() {
+      if (process.browser) {
+        if (!this.heartbeatAnimating) {
+          anime({
+            targets: '.heartbeat-animation',
+            translateX: [
+              { value: 0, duration: 0 },
+              { value: -500, duration: 4000 }
+            ],
+            scaleX: [
+              { value: 1, duration: 0 },
+              { value: 1, duration: 3800 },
+              { value: 0, duration: 200 }
+            ],
+            easing: 'linear'
+          });
+
+          this.heartbeatAnimating = true;
+          this.heartbeatTimeout = setTimeout(() => {
+            this.heartbeatAnimating = false;
+          }, 4400);
+        }
+      }
+    }
   }
 });
 </script>
@@ -44,6 +79,7 @@ export default Vue.extend({
   width: 100%;
   display: flex;
   flex-direction: row;
+  overflow: hidden;
 
   .title {
     position: relative;
@@ -88,6 +124,72 @@ export default Vue.extend({
     position: relative;
     top: 50%;
     display: block;
+    animation: none;
+
+    &.heartbeat-animating {
+      animation: heartbeat-line 4400ms 180ms linear;
+    }
+  }
+
+  .heartbeat-animation {
+    position: absolute;
+    right: -230px;
+    top: -25.3px;
+    width: 230px;
+  }
+}
+
+@keyframes heartbeat-line {
+  0% {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 0) 0,
+      calc(100% - 0) 100%,
+      calc(100% - 0) 100%,
+      calc(100% - 0) 0,
+      100% 0,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  35% {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 190px) 0,
+      calc(100% - 190px) 100%,
+      calc(100% - 0) 100%,
+      calc(100% - 0) 0,
+      100% 0,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  80% {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 440px) 0,
+      calc(100% - 440px) 100%,
+      calc(100% - 245px) 100%,
+      calc(100% - 245px) 0,
+      100% 0,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  100% {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 500px) 0,
+      calc(100% - 500px) 100%,
+      calc(100% - 500px) 100%,
+      calc(100% - 500px) 0,
+      100% 0,
+      100% 100%,
+      0% 100%
+    );
   }
 }
 </style>
