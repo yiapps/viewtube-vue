@@ -12,13 +12,15 @@ import { NuxtFilter } from './nuxt/nuxt.filter';
 import NuxtServer from './nuxt/';
 import { HomepageService } from './core/homepage/homepage.service';
 
+declare const module: any;
+
 async function bootstrap() {
   const server = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = server.get(ConfigService);
 
   const dev = configService.get('NODE_ENV') !== 'production';
-  // NUXT
   const nuxt = await NuxtServer.getInstance().run(dev);
+  // NUXT
 
   // NEST
   server.useGlobalFilters(new NuxtFilter(nuxt));
@@ -70,6 +72,27 @@ async function bootstrap() {
   SwaggerModule.setup('/api', server, swaggerDocument);
 
   server.use(cookieParser());
+
+  if (!dev) {
+    server.enableShutdownHooks();
+
+    const signals = ['SIGTERM', 'SIGINT'] as const;
+    signals.forEach(signal => {
+      process.on(signal, async () => {
+        Consola.log(`[${signal}] received, closing App`);
+
+        await nuxt.close();
+        await server.close();
+
+        Consola.log(`[${signal}] App closed`);
+      });
+    });
+  }
+
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => server.close());
+  }
 
   // START
   await server.listen(port, () => {

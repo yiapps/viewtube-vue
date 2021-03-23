@@ -1,7 +1,9 @@
 const path = require('path');
 const webpack = require('webpack');
 const nodeExternals = require('webpack-node-externals');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
+const WebpackShellPlugin = require('webpack-shell-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
   entry: ['webpack/hot/poll?1000', './server/main.ts'],
@@ -9,49 +11,40 @@ module.exports = {
   target: 'node',
   externals: [
     nodeExternals({
-      allowlist: ['webpack/hot/poll?1000']
-    })
+      allowlist: ['webpack/hot/poll?1000'],
+    }),
   ],
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: {
-          loader: 'ts-loader',
-          options: {
-            getCustomTransformers: program => ({
-              before: [require('@nestjs/swagger/plugin').before({}, program)]
-            })
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+              getCustomTransformers: program => ({
+                before: [require('@nestjs/swagger/plugin').before({}, program)]
+              })
+            }
           }
-        },
-        exclude: /node_modules/
+        ]
       }
-    ]
+    ],
   },
-  mode: 'development',
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   resolve: {
+    plugins: [new TsconfigPathsPlugin()],
     extensions: ['.tsx', '.ts', '.js'],
-    alias: {
-      server: path.resolve(__dirname, 'server/')
-    }
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new WebpackShellPluginNext({
-      onBuildStart: {
-        scripts: ['echo Starting ViewTube in development mode'],
-        blocking: false,
-        parallel: true
-      },
-      onBuildEnd: {
-        scripts: ['node dist/main.js'],
-        blocking: false,
-        parallel: false
-      }
-    })
+    new ForkTsCheckerWebpackPlugin(),
+    new WebpackShellPlugin({ onBuildEnd: ['node dist/main.js'] }),
   ],
   output: {
-    path: path.join(__dirname, '/dist'),
-    publicPath: '/'
-  }
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
+  },
 };

@@ -6,7 +6,7 @@ const dartSass = {
 
 export default defineNuxtConfig({
   srcDir: './client',
-
+  telemetry: false,
   env: {
     apiUrl: process.env.VIEWTUBE_API_URL,
     vapidKey: process.env.VIEWTUBE_PUBLIC_VAPID,
@@ -203,5 +203,9 @@ export default defineNuxtConfig({
         config.optimization.splitChunks.maxSize = 1000000;
       }
     }
-  }
+  },
+
+  render: {
+    http2: { push: true }
+  },
 })
