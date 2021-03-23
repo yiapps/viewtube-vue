@@ -163,10 +163,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/style-resources',
     'portal-vue/nuxt',
-    'cookie-universal-nuxt',
     '@nuxtjs/pwa',
     '@nuxtjs/axios',
-    ['cookie-universal-nuxt', { alias: 'cookies' }]
   ],
 
   axios: {
